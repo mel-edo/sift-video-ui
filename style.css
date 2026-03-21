@@ -30,9 +30,6 @@ body {
   min-height: 100vh;
 }
 
-
-/* ── Header ─────────────────────────────────────────── */
-
 header {
   border-bottom: 1px solid var(--border);
   padding: 0 2rem;
@@ -98,17 +95,11 @@ header nav a.active {
   color: var(--accent2);
 }
 
-
-/* ── Main layout ─────────────────────────────────────── */
-
 main {
   max-width: 1200px;
   margin: 0 auto;
   padding: 3.5rem 2rem 6rem;
 }
-
-
-/* ── Hero ────────────────────────────────────────────── */
 
 .hero {
   margin-bottom: 2.5rem;
@@ -140,9 +131,6 @@ main {
   font-size: 14px;
   color: var(--muted);
 }
-
-
-/* ── Search box ──────────────────────────────────────── */
 
 .search-wrap {
   position: relative;
@@ -212,9 +200,6 @@ main {
   opacity: 0.7;
 }
 
-
-/* ── Spinner ─────────────────────────────────────────── */
-
 .spinner {
   width: 13px;
   height: 13px;
@@ -231,9 +216,6 @@ main {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-
-
-/* ── History chips ───────────────────────────────────── */
 
 .history-row {
   display: flex;
@@ -283,9 +265,6 @@ main {
 
 .chip-clear:hover { color: var(--red); }
 
-
-/* ── Content layout (side by side) ──────────────────── */
-
 .content-layout {
   display: flex;
   gap: 1.5rem;
@@ -293,15 +272,20 @@ main {
 }
 
 .results-column {
-    width: 380px;
-    flex-shrink: 0;
-    height: calc(100vh - 56px - 7rem);
-    overflow-y: auto;
+  width: 380px;
+  flex-shrink: 0;
+  height: calc(100vh - 56px - 7rem);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.results-column::-webkit-scrollbar {
+  display: none;
 }
 
 .player-column {
-    flex: 1;
-    min-width: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .player-sticky {
@@ -309,8 +293,43 @@ main {
   top: 72px;
 }
 
+.player-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--muted);
+}
 
-/* ── Results header ──────────────────────────────────── */
+.placeholder-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.placeholder-btn svg {
+  width: 22px;
+  height: 22px;
+  margin-left: 3px;
+}
+
+.player-placeholder p {
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
 
 .results-header {
   display: flex;
@@ -341,9 +360,6 @@ main {
   margin-left: auto;
   font-style: italic;
 }
-
-
-/* ── Result cards ────────────────────────────────────── */
 
 .results-list {
   display: flex;
@@ -490,9 +506,6 @@ main {
   color: var(--accent2);
 }
 
-
-/* ── Empty / error / idle states ────────────────────── */
-
 .state-box {
   text-align: center;
   padding: 4rem 2rem;
@@ -509,9 +522,6 @@ main {
 .state-box p { font-size: 14px; }
 
 .state-box p strong { color: var(--text); }
-
-
-/* ── Video player ────────────────────────────────────── */
 
 #player {
   width: 100%;
