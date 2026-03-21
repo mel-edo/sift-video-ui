@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SIFT-Video</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="/style.css">
+    </head>
+    <body>
+        <!-- Header -->
+        <header>
+            <div class="logo-mark">
+                <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="5.5" cy="5.5" r="4" stroke="white" stroke-width="1.5"/>
+                    <line x1="5.5" y1="8.5" x2="13" y2="13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <span class="logo-text">SIFT<span>-video</span></span>
+
+            <nav>
+                <a href="#" class="active">search</a>
+                <a href="#" class="nav-upload">upload</a>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Hero -->
+            <div class="hero">
+                <p class="hero-eyebrow">semantic indexing for timelines</p>
+                <h1>Search <strong>inside</strong> your videos</h1>
+                <p>Natural language queries over audio and visual content - jump to the exact moment.</p>
+            </div>
+
+            <!-- Search -->
+            <div class="search-wrap">
+                <span class="search-icon">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+                        <line x1="10.5" y1="10.5" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <input id="query" type="text" placeholder='e.g. "iron man build his suit"' autocomplete="off" />
+                <button class="search-btn" id="search-btn" onclick="doSearch()">
+                    <div class="spinner"></div>
+                    <span class="btn-label">Search</span>
+                </button>
+            </div>
+
+            <!-- History -->
+            <div id="history-row" class="history-row">
+                <span class="history-label">recent</span>
+                <span id="history-chips"></span>
+                <button class="chip-clear" id="clear-history" onclick="clearHistory()" style="display:none">clear</button>
+            </div>
+
+            <div class="content-layout">
+
+                <div class="player-column" id="player-column" style="display:none">
+                    <div class="player-sticky">
+                    <video id="player" controls></video>
+                    <p id="now-playing-label"></p>
+                    </div>
+                </div>
+
+                <div class="results-column">
+                    <div id="results-section" style="display:none">
+                    <div class="results-header">
+                        <span class="results-title">results</span>
+                        <span class="results-count" id="results-count"></span>
+                        <span class="results-query" id="results-query"></span>
+                    </div>
+                    <div class="results-list" id="results-list"></div>
+                    </div>
+
+                    <div class="state-box" id="empty-state">
+                    <div class="state-icon">◎</div>
+                    <p>No matches found for <strong id="empty-query"></strong>.</p>
+                    <p style="margin-top:0.5rem; font-size:13px;">Try different keywords or check that videos have been indexed.</p>
+                    </div>
+
+                    <div class="state-box" id="error-state">
+                    <div class="state-icon">⚠</div>
+                    <p><strong>Search failed.</strong> Make sure the query engine is running on port 8080.</p>
+                    </div>
+
+                    <div class="state-box" id="idle-state">
+                    <div class="state-icon">⌕</div>
+                    <p>Enter a query to search across indexed videos.</p>
+                    </div>
+                </div>
+
+            </div>
+        
+        </main>
+        <script src="/app.js"></script>
+    </body>
+</html>
