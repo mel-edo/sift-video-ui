@@ -13,71 +13,81 @@
   <!-- ── Header ── -->
   <header>
     <div class="logo-mark">
-      <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 14 14" fill="none">
         <circle cx="5.5" cy="5.5" r="4" stroke="white" stroke-width="1.5"/>
         <line x1="8.5" y1="8.5" x2="13" y2="13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
     </div>
     <span class="logo-text">SIFT<span>-video</span></span>
-    <nav>
-      <a href="#" class="active">search</a>
-      <a href="#" id="nav-upload">upload</a>
-    </nav>
-  </header>
 
-  <!-- ── Main ── -->
-  <main>
-
-    <!-- Hero -->
-    <div class="hero">
-      <p class="hero-eyebrow">semantic indexing for timelines</p>
-      <h1>Search <strong>inside</strong> your videos</h1>
-      <p>Natural-language queries over audio and visual content — jump to the exact moment.</p>
-    </div>
-
-    <!-- Search -->
-    <div class="search-wrap">
+    <div class="header-search" id="header-search">
       <span class="search-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
           <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
           <line x1="10.5" y1="10.5" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
       </span>
-      <input id="query" type="text" placeholder='e.g. "iron man builds his suit"' autocomplete="off" />
+      <input id="query" type="text" placeholder='search inside your videos...' autocomplete="off" />
       <button class="search-btn" id="search-btn" onclick="doSearch()">
         <div class="spinner"></div>
         <span class="btn-label">Search</span>
       </button>
     </div>
 
-    <!-- History -->
-    <div class="history-row" id="history-row">
-      <span class="history-label">recent</span>
-      <span id="history-chips"></span>
-      <button class="chip-clear" id="clear-history" onclick="clearHistory()" style="display:none">clear</button>
-    </div>
+    <nav>
+      <a href="#" data-panel="search" class="active">search</a>
+      <a href="#" data-panel="library">library</a>
+      <a href="#" data-panel="upload">upload</a>
+    </nav>
+  </header>
 
-    <div class="content-layout">
+  <!-- ── App shell ── -->
+  <div class="app-shell" id="app-shell">
 
-      <div class="player-column">
-        <div class="player-sticky">
+    <!-- ── Theatre panel (left) ── -->
+    <div class="theatre-panel">
 
-          <div class="player-placeholder" id="player-placeholder">
-            <div class="placeholder-btn">
-              <svg viewBox="0 0 24 24" fill="none">
-                <polygon points="6,4 20,12 6,20" fill="currentColor"/>
-              </svg>
-            </div>
-            <p>select a result to play</p>
-          </div>
-
-          <video id="player" controls style="display:none"></video>
-          <p id="now-playing-label"></p>
-
+      <div class="player-placeholder" id="player-placeholder">
+        <div class="placeholder-btn">
+          <svg viewBox="0 0 24 24" fill="none">
+            <polygon points="6,4 20,12 6,20" fill="currentColor"/>
+          </svg>
         </div>
+        <p>select a result to play</p>
       </div>
 
-      <div class="results-column">
+      <video id="player" controls style="display:none"></video>
+      <p id="now-playing-label"></p>
+
+      <div class="history-row" id="history-row">
+        <span class="history-label">recent</span>
+        <span id="history-chips"></span>
+        <button class="chip-clear" id="clear-history" onclick="clearHistory()" style="display:none">clear</button>
+      </div>
+
+      <footer>
+        <span>made with</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M6 10.5S1 7.5 1 4a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0c0 3.5-5 6.5-5 6.5z" fill="var(--red)"/>
+        </svg>
+        <span>in c++ and rust ·</span>
+        <a href="https://github.com/sourav4243/sift-video" target="_blank">github</a>
+      </footer>
+
+    </div>
+
+    <!-- ── Sidebar (right) ── -->
+    <div class="sidebar">
+
+      <!-- ── Search panel ── -->
+      <div id="search-panel" class="panel">
+
+        <!-- Active filter pill -->
+        <div class="filter-pill" id="filter-pill" style="display:none">
+          <span>filtering:</span>
+          <span class="pill-name"></span>
+          <button class="pill-clear">✕</button>
+        </div>
 
         <div id="results-section" style="display:none">
           <div class="results-header">
@@ -100,15 +110,52 @@
         </div>
 
         <div class="state-box" id="idle-state">
-          <div class="state-icon">⌕</div>
-          <p>Enter a query to search across indexed videos.</p>
+          <div class="idle-hero">
+            <p class="idle-eyebrow">Search <strong>inside</strong> your videos</p>
+            <p class="idle-heading">semantic indexing for timelines</p>
+            <p class="idle-sub">Natural-language queries over audio and visual content — jump to the exact moment.</p>
+          </div>
         </div>
+
+      </div>
+
+      <!-- ── Library panel ── -->
+      <div id="library-panel" class="panel" style="display:none">
+
+        <div class="panel-header">
+          <span class="panel-title">indexed videos</span>
+          <span class="panel-hint">click to filter search</span>
+        </div>
+
+        <div id="video-list-wrap"></div>
+
+      </div>
+
+      <!-- ── Upload panel ── -->
+      <div id="upload-panel" class="panel" style="display:none">
+
+        <div class="upload-header">
+          <p class="upload-title">Upload a video</p>
+          <p class="upload-sub">Video will be indexed automatically within ~30 seconds after upload.</p>
+        </div>
+
+        <div class="drop-zone" id="drop-zone">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <path d="M12 16V8M12 8l-3 3M12 8l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M3 15v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <p>drag &amp; drop or <span class="drop-link">browse</span></p>
+          <p class="drop-formats">mp4 · webm · mkv · mov · avi</p>
+          <input type="file" id="file-input" accept=".mp4,.webm,.mkv,.mov,.avi,.ogv" multiple style="display:none">
+        </div>
+
+        <div class="upload-list" id="upload-list"></div>
 
       </div>
 
     </div>
 
-  </main>
+  </div>
 
   <script src="/app.js"></script>
 </body>
