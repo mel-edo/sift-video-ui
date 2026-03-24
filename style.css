@@ -146,6 +146,60 @@ header nav a.active {
   box-shadow: 0 0 0 3px rgba(91, 124, 250, 0.12);
 }
 
+.download-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.download-btn.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.download-btn.loading .spinner   { display: block; }
+.download-btn.loading .btn-label { display: inline; }
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.delete-btn:hover {
+  color: var(--red);
+  background: rgba(244, 96, 96, 0.1);
+}
+
+.url-download {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.url-download input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  color: var(--text);
+}
+
 .search-btn {
   position: absolute;
   right: 6px;
@@ -212,6 +266,10 @@ header nav a.active {
   opacity: 1;
   padding: 1.25rem 1.5rem;
   pointer-events: all;
+}
+
+.app-shell.theatre .filter-toggles {
+  display: flex;
 }
 
 .app-shell:not(.theatre) .theatre-panel {
@@ -290,6 +348,8 @@ header nav a.active {
 
 #player {
   width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
   border-radius: var(--radius-lg);
   background: #000;
   border: 1px solid var(--border);
@@ -616,6 +676,45 @@ footer a:hover { color: var(--text); }
   margin-bottom: 0.75rem;
 }
 
+.filter-toggles {
+  display: none;
+  background: var(--surface2);
+  border-radius: var(--radius);
+  padding: 4px;
+  gap: 4px;
+  margin: 0 auto 1rem auto;
+  width: fit-content;
+}
+
+.filter-radio {
+  cursor: pointer;
+  position: relative;
+}
+
+.filter-radio input {
+  display: none;
+}
+
+.filter-radio span {
+  display: block;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.filter-radio input:checked + span {
+  background: var(--surface);
+  color: var(--accent2);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.filter-radio:hover span {
+  color: var(--text);
+}
+
 .pill-name {
   font-weight: 500;
   overflow: hidden;
@@ -712,12 +811,20 @@ footer a:hover { color: var(--text); }
 /* ── Indexed video list ──────────────────────────────── */
 
 .vlist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 0.625rem 0.75rem;
   border-radius: var(--radius);
   border: 1px solid transparent;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
   margin-bottom: 4px;
+}
+
+.vlist-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .vlist-item:hover {
@@ -773,6 +880,32 @@ footer a:hover { color: var(--text); }
   font-size: 12px;
   color: var(--muted);
   line-height: 1.5;
+}
+
+.upload-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.upload-thumb {
+  width: 64px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: var(--surface2);
+}
+
+.upload-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.upload-duration {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
 }
 
 .drop-zone {

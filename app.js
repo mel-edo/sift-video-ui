@@ -12,12 +12,44 @@ function formatTime(s) {
   return [m, sec].map(n => String(n).padStart(2, '0')).join(':');
 }
 
+function formatDuration(sec) {
+  sec = Math.floor(sec);
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
 function badgeClass(type) {
   if (type === 'audio+visual') return 'badge-audiovisual';
   if (type === 'visual')       return 'badge-visual';
   return 'badge-audio';
 }
 
+function createDownloadItem(initialText) {
+  const list = document.getElementById('upload-list');
+
+  const item = document.createElement('div');
+  item.className = 'upload-item';
+
+  item.innerHTML = `
+    <img class="upload-thumb" src="" />
+    <div class="upload-meta">
+      <span class="upload-name">${initialText}</span>
+      <span class="upload-duration"></span>
+    </div>
+    <span class="upload-status uploading">downloading...</span>
+  `;
+
+  list.prepend(item);
+
+  return {
+    item,
+    status: item.querySelector('.upload-status'),
+    nameEl: item.querySelector('.upload-name'),
+    durationEl: item.querySelector('.upload-duration'),
+    thumbEl: item.querySelector('.upload-thumb')
+  };
+}
 
 // ── Search history ────────────────────────────────────
 
@@ -95,12 +127,22 @@ function renderVideoList(videos) {
 
   wrap.innerHTML = videos.map(v => `
     <div class="vlist-item" data-id="${v.video_id}" data-name="${encodeURIComponent(v.video_name)}">
-      <div class="vlist-name">${v.video_name}</div>
-      <div class="vlist-meta">
-        <span>${v.audio_segments} segments</span>
-        <span>·</span>
-        <span>${v.visual_frames} frames</span>
+      
+      <div class="vlist-info">
+        <div class="vlist-name">${v.video_name}</div>
+        <div class="vlist-meta">
+          <span>${v.audio_segments} segments</span>
+          <span>·</span>
+          <span>${v.visual_frames} frames</span>
+        </div>
       </div>
+
+      <button class="delete-btn" data-delete title="Delete video">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+        </svg>
+      </button>
+
     </div>
   `).join('');
 
@@ -131,6 +173,33 @@ function renderVideoList(videos) {
         if (currentQuery) doSearch();
       }
     });
+
+    const deleteBtn = item.querySelector('[data-delete]');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation(); // prevents triggering the item click
+
+        const name = decodeURIComponent(item.dataset.name);
+
+        if (!confirm(`Delete ${name}?`)) return;
+
+        try {
+          const res = await fetch(`/videos/${encodeURIComponent(name)}`, {
+            method: 'DELETE'
+          });
+
+          if (!res.ok) throw new Error();
+
+          // smooth removal
+          item.style.opacity = "0";
+          setTimeout(() => item.remove(), 200);
+
+        } catch {
+          alert("Delete failed");
+        }
+      });
+    }
+
   });
 }
 
@@ -245,6 +314,9 @@ async function doSearch() {
   try {
     const body = { query };
     if (activeVideoId) body.video_id = activeVideoId;
+    
+    const matchType = document.querySelector('input[name="match_type"]:checked').value;
+    if (matchType !== 'all') body.match_type = matchType;
 
     const res = await fetch('/search', {
       method: 'POST',
@@ -344,7 +416,7 @@ async function uploadFiles(files) {
       const res = await fetch('/upload', { method: 'POST', body: formData });
 
       if (res.ok) {
-        status.textContent = 'uploaded — indexing soon';
+        status.textContent = 'uploaded - indexing soon';
         status.className   = 'upload-status done';
         loadVideoList(); // refresh the video list
       } else {
@@ -358,6 +430,106 @@ async function uploadFiles(files) {
   }
 }
 
+async function downloadFromUrl() {
+  const urlInput = document.getElementById("yt-url");
+  const btn      = document.getElementById("download-btn");
+  const label    = btn.querySelector(".btn-label");
+
+  const url = urlInput.value.trim();
+  if (!url) return;
+
+  // create UI entry
+  const entry = createDownloadItem("Fetching title...");
+
+  label.textContent = "Downloading...";
+  btn.classList.add("loading");
+
+  try {
+    const res = await fetch("/download", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ url })
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text);
+    }
+
+    const data = await res.json();
+    if (data.title) {
+      entry.nameEl.textContent = data.title;
+    }
+    if (data.duration) {
+      entry.durationEl.textContent = formatDuration(data.duration);
+    }
+    if (data.thumbnail) {
+      entry.thumbEl.src = data.thumbnail;
+    }
+
+    urlInput.value = "";
+
+    // update UI
+    entry.status.textContent = "processing...";
+    entry.status.className   = "upload-status uploading";
+
+    label.textContent = "Processing...";
+
+    const newVideo = await waitForNewVideo();
+
+    // update final state
+    entry.status.textContent = "indexed";
+    entry.status.className   = "upload-status done";
+
+    // replace URL with actual filename if available
+    if (newVideo?.video_name) {
+      entry.nameEl.textContent = newVideo.video_name;
+    }
+
+  } catch (err) {
+    console.error(err);
+
+    entry.status.textContent = "failed";
+    entry.status.className   = "upload-status failed";
+
+    alert("Download failed: " + err.message);
+
+  } finally {
+    label.textContent = "Download";
+    btn.classList.remove("loading");
+  }
+}
+
+async function waitForNewVideo(timeoutMs = 60000) {
+  const start = Date.now();
+
+  const initialRes  = await fetch('/videos/list');
+  const initialData = await initialRes.json();
+  const initialSet  = new Set((initialData.videos || []).map(v => v.video_id));
+
+  while (Date.now() - start < timeoutMs) {
+    await new Promise(r => setTimeout(r, 2000));
+
+    try {
+      const res  = await fetch('/videos/list');
+      const data = await res.json();
+
+      for (const v of (data.videos || [])) {
+        if (!initialSet.has(v.video_id)) {
+          loadVideoList();
+          return v;
+        }
+      }
+
+    } catch (e) {
+      console.warn("Polling failed", e);
+    }
+  }
+
+  return null;
+}
 
 // ── Init ──────────────────────────────────────────────
 
@@ -403,6 +575,7 @@ document.querySelector('.logo-text').addEventListener('click', () => {
     document.getElementById('query').value = '';
 
     activeVideoId = null;
+    document.querySelector('input[name="match_type"][value="all"]').checked = true;
     document.getElementById('filter-pill').style.display = 'none';
     document.querySelectorAll('.vlist-item').forEach(el => el.classList.remove('active'));
 
@@ -423,6 +596,15 @@ document.querySelector('.logo-text').addEventListener('click', () => {
     }, 20);
 
   }, 350); // wait for fade out to complete
+});
+
+document.querySelectorAll('input[name="match_type"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    // Only trigger if there's actually a query in the search bar
+    if (document.getElementById('query').value.trim()) {
+      doSearch();
+    }
+  });
 });
 
 setupUpload();

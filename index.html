@@ -79,6 +79,20 @@
     <!-- ── Sidebar (right) ── -->
     <div class="sidebar">
 
+      <div class="filter-toggles">
+        <label class="filter-radio">
+          <input type="radio" name="match_type" value="all" checked>
+          <span>All Matches</span>
+        </label>
+        <label class="filter-radio">
+          <input type="radio" name="match_type" value="audio">
+          <span>Audio</span>
+        </label>
+        <label class="filter-radio">
+          <input type="radio" name="match_type" value="visual">
+          <span>Visual</span>
+        </label>
+      </div>
       <!-- ── Search panel ── -->
       <div id="search-panel" class="panel">
 
@@ -137,6 +151,14 @@
         <div class="upload-header">
           <p class="upload-title">Upload a video</p>
           <p class="upload-sub">Video will be indexed automatically within ~30 seconds after upload.</p>
+        </div>
+
+        <div class="url-download">
+          <input id="yt-url" type="text" placeholder="paste video url..." />
+          <button class="download-btn" id="download-btn" onclick="downloadFromUrl()">
+            <div class="spinner"></div>
+            <span class="btn-label">Download</span>
+          </button>
         </div>
 
         <div class="drop-zone" id="drop-zone">
