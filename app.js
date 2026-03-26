@@ -1,6 +1,6 @@
 const HISTORY_KEY    = 'sift_history';
 let   activeVideoId  = null; // currently selected video filter
-
+let healthInterval = null;
 
 // ── Helpers ───────────────────────────────────────────
 
@@ -49,6 +49,29 @@ function createDownloadItem(initialText) {
     durationEl: item.querySelector('.upload-duration'),
     thumbEl: item.querySelector('.upload-thumb')
   };
+}
+
+async function checkHealth() {
+  try {
+    const res = await fetch('/health');
+    const data = await res.json();
+
+    const banner = document.getElementById('pipeline-banner');
+    if (!banner) return;
+
+    if (data.pipeline_running) {
+      banner.style.display = 'flex';
+      banner.textContent = 'Processing video… indexing in progress';
+    } else {
+      banner.style.display = 'none';
+      // pipeline just finished — refresh the video list
+      if (typeof loadVideoList === 'function') loadVideoList();
+      clearInterval(healthInterval);
+      healthInterval = null;
+    }
+  } catch (e) {
+    console.warn('Health check failed', e);
+  }
 }
 
 // ── Search history ────────────────────────────────────
@@ -418,7 +441,7 @@ async function uploadFiles(files) {
       if (res.ok) {
         status.textContent = 'uploaded - indexing soon';
         status.className   = 'upload-status done';
-        loadVideoList(); // refresh the video list
+        startHealthPolling();
       } else {
         status.textContent = 'failed';
         status.className   = 'upload-status failed';
@@ -472,63 +495,22 @@ async function downloadFromUrl() {
     urlInput.value = "";
 
     // update UI
-    entry.status.textContent = "processing...";
+    entry.status.textContent = "indexing in background...";
     entry.status.className   = "upload-status uploading";
-
     label.textContent = "Processing...";
 
-    const newVideo = await waitForNewVideo();
-
-    // update final state
-    entry.status.textContent = "indexed";
-    entry.status.className   = "upload-status done";
-
-    // replace URL with actual filename if available
-    if (newVideo?.video_name) {
-      entry.nameEl.textContent = newVideo.video_name;
-    }
+    // Start polling the backend to see when indexing is fully complete
+    startHealthPolling();
 
   } catch (err) {
     console.error(err);
-
     entry.status.textContent = "failed";
     entry.status.className   = "upload-status failed";
-
     alert("Download failed: " + err.message);
-
   } finally {
     label.textContent = "Download";
     btn.classList.remove("loading");
   }
-}
-
-async function waitForNewVideo(timeoutMs = 60000) {
-  const start = Date.now();
-
-  const initialRes  = await fetch('/videos/list');
-  const initialData = await initialRes.json();
-  const initialSet  = new Set((initialData.videos || []).map(v => v.video_id));
-
-  while (Date.now() - start < timeoutMs) {
-    await new Promise(r => setTimeout(r, 2000));
-
-    try {
-      const res  = await fetch('/videos/list');
-      const data = await res.json();
-
-      for (const v of (data.videos || [])) {
-        if (!initialSet.has(v.video_id)) {
-          loadVideoList();
-          return v;
-        }
-      }
-
-    } catch (e) {
-      console.warn("Polling failed", e);
-    }
-  }
-
-  return null;
 }
 
 // ── Init ──────────────────────────────────────────────
@@ -606,6 +588,12 @@ document.querySelectorAll('input[name="match_type"]').forEach(radio => {
     }
   });
 });
+
+function startHealthPolling() {
+  if (healthInterval) return;           // already polling
+  checkHealth();                        // immediate first check
+  healthInterval = setInterval(checkHealth, 3000);
+}
 
 setupUpload();
 renderHistory();
