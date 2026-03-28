@@ -51,7 +51,7 @@ function createDownloadItem(initialText) {
   };
 }
 
-async function checkHealth() {
+async function checkHealth(onComplete) {
   try {
     const res = await fetch('/health');
     const data = await res.json();
@@ -68,6 +68,7 @@ async function checkHealth() {
       if (typeof loadVideoList === 'function') loadVideoList();
       clearInterval(healthInterval);
       healthInterval = null;
+      if (typeof onComplete === 'function') onComplete();
     }
   } catch (e) {
     console.warn('Health check failed', e);
@@ -391,6 +392,10 @@ function setupUpload() {
   const zone  = document.getElementById('drop-zone');
   const input = document.getElementById('file-input');
 
+  document.getElementById('yt-url').addEventListener('keydown', e => {
+    if (e.key === 'Enter') downloadFromUrl();
+  });
+
   zone.addEventListener('click', () => input.click());
 
   zone.addEventListener('dragover', e => {
@@ -461,7 +466,6 @@ async function downloadFromUrl() {
   const url = urlInput.value.trim();
   if (!url) return;
 
-  // create UI entry
   const entry = createDownloadItem("Fetching title...");
 
   label.textContent = "Downloading...";
@@ -470,9 +474,7 @@ async function downloadFromUrl() {
   try {
     const res = await fetch("/download", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url })
     });
 
@@ -482,25 +484,56 @@ async function downloadFromUrl() {
     }
 
     const data = await res.json();
-    if (data.title) {
-      entry.nameEl.textContent = data.title;
-    }
-    if (data.duration) {
-      entry.durationEl.textContent = formatDuration(data.duration);
-    }
-    if (data.thumbnail) {
-      entry.thumbEl.src = data.thumbnail;
-    }
+
+    if (data.title)     entry.nameEl.textContent     = data.title;
+    if (data.duration)  entry.durationEl.textContent = formatDuration(data.duration);
+    if (data.thumbnail) entry.thumbEl.src            = data.thumbnail;
 
     urlInput.value = "";
-
-    // update UI
-    entry.status.textContent = "indexing in background...";
-    entry.status.className   = "upload-status uploading";
     label.textContent = "Processing...";
+    entry.status.textContent = "indexing...";
+    entry.status.className   = "upload-status uploading";
 
-    // Start polling the backend to see when indexing is fully complete
-    startHealthPolling();
+    // poll until audio_segments > 0 AND visual_frames > 0
+    const videoName = data.title ? `${data.title}.mp4` : null;
+    let indexed = null;
+    const start = Date.now();
+    const timeout = 300000;
+
+    while (Date.now() - start < timeout) {
+      await new Promise(r => setTimeout(r, 5000));
+
+      try {
+        const listRes  = await fetch('/videos/list');
+        const listData = await listRes.json();
+        const stem     = data.title;
+
+        const match = (listData.videos || []).find(v =>
+          (stem && v.video_id === stem) ||
+          (videoName && v.video_name === videoName)
+        );
+
+        if (match) {
+          if (match.audio_segments > 0 && match.visual_frames > 0) {
+            indexed = match;
+            break;
+          }
+        }
+      } catch (e) {
+        console.warn("Polling failed", e);
+      }
+    }
+
+    if (indexed) {
+      entry.status.textContent = "indexed";
+      entry.status.className   = "upload-status done";
+      if (indexed.video_name) entry.nameEl.textContent = indexed.video_name;
+    } else {
+      entry.status.textContent = "timed out";
+      entry.status.className   = "upload-status failed";
+    }
+
+    loadVideoList();
 
   } catch (err) {
     console.error(err);
@@ -589,10 +622,10 @@ document.querySelectorAll('input[name="match_type"]').forEach(radio => {
   });
 });
 
-function startHealthPolling() {
-  if (healthInterval) return;           // already polling
-  checkHealth();                        // immediate first check
-  healthInterval = setInterval(checkHealth, 3000);
+function startHealthPolling(onComplete) {
+  if (healthInterval) return;
+  checkHealth(onComplete);
+  healthInterval = setInterval(() => checkHealth(onComplete), 3000);
 }
 
 setupUpload();
