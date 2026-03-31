@@ -28,6 +28,12 @@
         </svg>
       </span>
       <input id="query" type="text" placeholder='search inside your videos...' autocomplete="off" />
+      <button id="clear-search-btn" class="clear-search-btn" style="display: none;" aria-label="Clear search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
       <button class="search-btn" id="search-btn" onclick="doSearch()">
         <div class="spinner"></div>
         <span class="btn-label">Search</span>
@@ -70,13 +76,26 @@
         <p>select a result to play</p>
       </div>
 
-      <video id="player" controls style="display:none"></video>
+      <div class="video-wrapper" id="video-wrapper" style="display:none">
+        <video id="player"></video>
+        <div class="custom-controls">
+          <button id="play-pause-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <input type="range" id="seek-bar" value="0" min="0" max="100" step="0.1">
+          <span id="time-display">0:00 / 0:00</span>
+          
+          <button id="mute-btn" class="mute-btn" aria-label="Mute/Unmute">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+          </button>
+        </div>
+      </div>
       <p id="now-playing-label"></p>
 
-      <div class="history-row" id="history-row">
+      <div class="history-row" id="theatre-history-row" style="display: none;">
         <span class="history-label">recent</span>
-        <span id="history-chips"></span>
-        <button class="chip-clear" id="clear-history" onclick="clearHistory()" style="display:none">clear</button>
+        <span id="theatre-history-chips"></span>
+        <button class="chip-clear" id="theatre-clear-history" onclick="clearHistory()">clear</button>
       </div>
 
       <footer>
@@ -137,13 +156,28 @@
           <p><strong>Search failed.</strong> Make sure the query engine is running on port 8080.</p>
         </div>
 
-        <div class="state-box" id="idle-state">
-          <div class="idle-hero">
-            <p class="idle-eyebrow">Search <strong>inside</strong> your videos</p>
-            <p class="idle-heading">semantic indexing for timelines</p>
-            <p class="idle-sub">Natural language queries over audio and visual content, jump to the exact moment.</p>
+      <div id="idle-state" class="idle-hero">
+        <div class="idle-eyebrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 12 12 17 22 12"></polyline>
+          <polyline points="2 17 12 22 22 17"></polyline>
+        </svg>
+          Semantic Indexing
+        </div>
+        
+        <h1 class="idle-heading">Search <span>inside</span> your videos.</h1>
+        
+        <p class="idle-sub">Natural language queries over audio and visual content. Jump to the exact moment instantly.</p>
+        
+        <div class="history-container">
+          <span id="idle-history-title" class="history-label-text" style="display: none;">Recent Searches</span>
+          <div class="history-row" style="margin-top: 0;">
+            <div id="idle-history-chips" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+            <button id="idle-clear-history" class="chip-clear" onclick="clearHistory()" style="display: none;">clear</button>
           </div>
         </div>
+      </div>
 
       </div>
 
